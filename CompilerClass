@@ -1,0 +1,234 @@
+package project02_323;
+
+
+public class Compiler {
+    private String[] input;
+    private String stack = ""; 
+    private int s = 0; 
+    
+    public Compiler(String [] array){
+        input = new String[array.length];
+        for (int i = 0; i < array.length; i++){
+            input[i] = array[i];
+        }
+    }
+    
+    private int Reduction(int state, char letter){
+        //int y = 0;
+        if (state == 0){
+            if (letter == 'E'){return 1;}
+            else if (letter == 'T'){return 2;}
+            else if (letter == 'F'){return 3;}
+        }
+        else if (state == 4){
+            if (letter == 'E'){return 8;}
+            else if (letter == 'T'){return 2;}
+            else if (letter == 'F'){return 3;}
+        }
+        else if (state == 6){
+            if (letter == 'T'){return 9;}
+            else if (letter == 'F'){return 3;}
+        }
+        else if (state == 7){
+            if (letter == 'F'){return 10;}
+        }
+        return 0;
+    }
+    
+    public void tableStack (){
+        //String action = "";
+        stack = "0"; 
+        int arrayP = 0; 
+        int outerState = 0; 
+        boolean check  = true; 
+        boolean stop = true; 
+        //for reduction 
+        int k = 0;
+        int go_to = 0; 
+   
+        //String srtInput = ArrayToString(0);
+        //System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(0),"Action");
+        while(check&&(arrayP < input.length)&& stop){
+            //state 0,4,6,7
+            if (go_to == 0||go_to == 4||go_to == 6||go_to == 7){
+                if (input[arrayP].equals("id")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"S5");
+                    go_to = 5; 
+                    arrayP++;
+                    stack += "id5";
+                    
+                }
+                else if (input[arrayP].equals("(")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"S4");
+                    outerState = k;
+                    go_to = 4; 
+                    arrayP++;
+                    stack += "(4";
+                    k = 4;
+                }
+                else {check = false; }
+            }
+            //stage 1
+            else if ( go_to == 1){
+                if (input[arrayP].equals("+")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"S6");
+                    go_to = 6;
+                    arrayP++;
+                    stack += "+6";
+                    k = 6;
+                }
+                else if (input[arrayP].equals("$")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"accept");
+                    stop = false;
+                }
+                else {check = false;}
+            }
+            //state 2
+            else if (go_to == 2){
+                if (input[arrayP].equals("+")||input[arrayP].equals(")")||input[arrayP].equals("$")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"R2 {" + k + "," + ReductionLetter(2) + "]");
+                    go_to = Reduction(k,ReductionLetter(2));
+                    //arrayP++;
+                    stack = NewStack(k, go_to, ReductionLetter(2));
+                }
+                else if (input[arrayP].equals("*")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"S7");
+                    go_to = 7;
+                    arrayP++;
+                    stack += "*7";
+                    k = 7;
+                }   
+                else {check = false;}
+            }
+            //state 3
+            else if (go_to == 3){
+                if (input[arrayP].equals("+")||input[arrayP].equals("*")||input[arrayP].equals(")")||input[arrayP].equals("$")){
+                    
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"R4 [" + k + "," + ReductionLetter(4) + "]");
+                    go_to = Reduction(k,ReductionLetter(4));
+                    stack = NewStack(k, go_to, ReductionLetter(4));
+                    
+                }
+                else {check = false;}
+            }
+            //state 5 
+            else if (go_to == 5){
+                if (input[arrayP].equals("+")||input[arrayP].equals("*")||input[arrayP].equals(")")||input[arrayP].equals("$")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"R6 {" + k + "," + ReductionLetter(6) + "]");
+                    go_to = Reduction(k,ReductionLetter(6));
+                    //arrayP++;
+                    stack = NewStack(k, go_to, ReductionLetter(6));
+                }
+                else {check = false;}
+            }
+            //state 8
+            else if (go_to == 8){
+                if (input[arrayP].equals("+")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"S6");
+                    go_to = 6;
+                    arrayP++;
+                    stack += "+6";
+                }
+                else if (input[arrayP].equals(")")){
+                    k = outerState;
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"S11");
+                    go_to = 11;
+                    arrayP++;
+                    stack += ")11";
+                }
+                else {check = false;}
+            }
+            //state 9
+            else if (go_to == 9){
+                if (input[arrayP].equals("+")||input[arrayP].equals(")")||input[arrayP].equals("$")){
+                    if(input[arrayP].equals("$")){ k =0;}
+                    
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"R1 {" + k + "," + ReductionLetter(1) + "]");
+                    go_to = Reduction(k,ReductionLetter(1));
+                    
+                    stack = NewStack(k, go_to, ReductionLetter(1));
+                }
+                else if (input[arrayP].equals("*")){
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"S7");
+                    go_to = 7;
+                    arrayP++;
+                    stack += "*7";
+                    k = 7;
+                }   
+                else {check = false;}
+            }
+            //state 10 
+            else if (go_to == 10){
+                if (input[arrayP].equals("+")||input[arrayP].equals("*")||input[arrayP].equals(")")||input[arrayP].equals("$")){
+                    if(input[arrayP].equals("$")){ k = outerState;}
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"R3 [" + k + "," + ReductionLetter(3) + "]");
+                    go_to = Reduction(k,ReductionLetter(3));
+                    
+                    stack = NewStack(k, go_to, ReductionLetter(3));
+                }
+                else {check = false;}
+            }
+            //state 11
+            else if (go_to == 11){
+                if (input[arrayP].equals("+")||input[arrayP].equals("*")||input[arrayP].equals(")")||input[arrayP].equals("$")){
+                    if(input[arrayP].equals("$")){k = outerState;}
+                    
+                    System.out.printf("%-20s %-20s %-20s\n", stack,ArrayToString(arrayP),"R5 [" + k + "," + ReductionLetter(5) + "]");
+                    go_to = Reduction(k,ReductionLetter(5));
+                    stack = NewStack(k, go_to, ReductionLetter(5));
+                    
+                }
+                else {check = false;}
+            }
+        }
+        //System.out.println(arrayP + "  " + input[arrayP] );
+        if (check){
+            System.out.println("String is accepted");
+        }
+        else {
+            System.out.println("String is not accepted");
+        }
+    }
+    //stack when reduction
+    private String NewStack (int j, int go_to, char letter){
+        String num = "";
+        num += j;
+        //System.out.println(num.charAt(0));
+        //char a = num.charAt(0);
+        int index = 0;
+        String stk; 
+        for (int i = stack.length()-1; i > 0; i--){
+            if(num.charAt(0) == stack.charAt(i)){
+                index = i;
+                //System.out.println(index);
+                break;
+            }
+        }
+        //System.out.println(num.charAt(0) +"  " + index);
+    
+        stk = stack.substring(0, index+1) + letter + go_to;
+        return stk;
+    }
+    //Methof to find the letter 
+    private static char ReductionLetter (int k){
+        char x = 'A';
+        if((k == 1)||(k == 2)){x = 'E';}
+        else if ((k == 3)||(k == 4)){x = 'T';}
+        else if ((k == 5)||(k == 6)){x = 'F';}
+        
+        return x;
+    }
+    
+    
+    //mahtod that returns the string for input 
+    private String ArrayToString (int i){
+        String srt = "";
+        for(int j = i; j < input.length; j++){
+            srt += input[j];
+        }
+        return srt;
+    }
+
+  
+    
+} 
